@@ -1,0 +1,67 @@
+receivers:
+  prometheus:
+    config:
+      global:
+        scrape_interval: 60s
+        scrape_timeout: 60s
+      scrape_configs:
+      - job_name: "node-exporter"
+        static_configs:
+        - targets: [ localhost:9100 ]
+processors:
+  resourcedetection:
+    detectors: [ec2]
+  filter:
+    metrics:
+      include:
+        match_type: strict
+        metric_names:
+        # Node Exporter
+          - up
+          - node_filesystem_size_bytes
+          - node_filesystem_avail_bytes
+          - node_cpu_seconds_total
+          - node_load1
+          - node_load5
+          - node_load15
+          - node_memory_MemAvailable_bytes
+          - node_memory_MemTotal_bytes
+          - node_memory_SwapFree_bytes
+          - node_memory_SwapTotal_bytes
+          - node_context_switches_total
+          - node_cpu_seconds_total
+          - node_filesystem_device_error
+          - node_boot_time_seconds
+          - node_uname_info
+          - node_network_receive_bytes_total
+          - node_network_transmit_bytes_total
+          - node_intr_total
+          - node_filefd_maximum
+          - node_procs_running
+          - node_systemd_unit_state
+          - node_os_info
+          - node_time_seconds
+          - password_sum
+          - backup_file_out
+          - logged_in_users
+          - number_of_processes
+exporters:
+  prometheusremotewrite:
+    endpoint: {{ prometheus_endpoint }}
+    resource_to_telemetry_conversion:
+      enabled: true
+    auth:
+      authenticator: sigv4auth
+
+extensions:
+  sigv4auth:
+    region: ap-northeast-1
+    service: aps
+
+service:
+  extensions: [sigv4auth]
+  pipelines:
+    metrics:
+      receivers: [prometheus]
+      processors: [resourcedetection, filter]
+      exporters: [prometheusremotewrite]

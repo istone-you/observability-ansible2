@@ -1,0 +1,12 @@
+[Unit]
+Description=mongodb exporter
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/etc/prometheus/mongodb_exporter-{{ mongodb_exporter_version }}.linux-amd64/mongodb_exporter
+ExecStop=/bin/kill -INT $MAINPID
+Restart = always
+
+[Install]
+WantedBy=multi-user.target
